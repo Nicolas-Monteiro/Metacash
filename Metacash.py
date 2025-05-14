@@ -232,10 +232,13 @@ def menu_metacash(usuario):
         resposta_menu = input("Digite o número correspondente ao que você deseja: ")
         if resposta_menu == "1":
             print("a")
+            continue
         elif resposta_menu == "2":
             print("b")
+            continue
         elif resposta_menu == "3":
             print("c")
+            continue
         elif resposta_menu == "4":
             usuario = ver_perfil_usuario(usuario)
         elif resposta_menu == "5":
