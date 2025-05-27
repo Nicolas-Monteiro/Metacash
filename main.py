@@ -1,5 +1,6 @@
 import os
 
+
 def alterar_dados_cadastro(usuario):
     """
 Permite a alteração dos dados de cadastro pelo usuário no arquivo "Cadastros.txt"
@@ -19,7 +20,7 @@ Esta função precisa do auxílio das seguintes funções:
     - ja_cadastrado_email(email)
     """
     try:
-        with open("Cadastros.txt", "r", encoding='cp1252') as f:
+        with open("Cadastros.txt", "r", encoding='UTF-8') as f:
             linhas = f.readlines()
 
         alterado = False
@@ -80,7 +81,7 @@ Esta função precisa do auxílio das seguintes funções:
                 break
 
         if alterado:
-            with open("Cadastros.txt", "w", encoding='cp1252') as f:
+            with open("Cadastros.txt", "w", encoding='UTF-8') as f:
                 f.writelines(linhas)
 
             # Atualiza também no usuarios.txt
@@ -117,7 +118,7 @@ def atualizar_dados_no_txt(usuario_antigo, usuario_novo=None, nova_senha=None, n
         None
     """
     try:
-        with open("usuarios.txt", "r", encoding='cp1252') as f:
+        with open("usuarios.txt", "r", encoding='UTF-8') as f:
             linhas = f.readlines()
     except FileNotFoundError:
         print("❌ Arquivo usuarios.txt não encontrado.")
@@ -141,10 +142,8 @@ def atualizar_dados_no_txt(usuario_antigo, usuario_novo=None, nova_senha=None, n
         else:
             novas_linhas.append(linha)
 
-    with open("usuarios.txt", "w", encoding='cp1252') as f:
+    with open("usuarios.txt", "w", encoding='UTF-8') as f:
         f.writelines(novas_linhas)
-
-    print("🔄 Dados atualizados no usuarios.txt")
     
 def deletar_conta(usuario):
     """
@@ -160,10 +159,10 @@ Exceções:
     - Caso o nome de usuário não for encontrado exibe um erro
 
     """
-    resposta = input("Você realmente deseja deletar a sua conta? (S/N) ")
+    resposta = input("Você realmente deseja deletar a sua conta? (S/N): ")
     if resposta.upper() == "S":
         try:
-            with open("Cadastros.txt", "r", encoding='cp1252') as f:
+            with open("Cadastros.txt", "r", encoding='UTF-8') as f:
                 linhas = f.readlines()
 
             nova_lista = []
@@ -174,7 +173,7 @@ Exceções:
                     continue  
                 nova_lista.extend(linhas[i:i + 4])  
             if deletado:
-                with open("Cadastros.txt", "w", encoding='cp1252') as f:
+                with open("Cadastros.txt", "w", encoding='UTF-8') as f:
                     f.writelines(nova_lista)
                 print("✅ Sua conta foi deletada com sucesso")
                 central_do_site()
@@ -202,7 +201,7 @@ Exceções: Caso o arquivo "Cadastros.txt" não for encontrado exibe uma mensage
 
     """
     try:
-        with open ("Cadastros.txt", "r", encoding = 'cp1252') as f:
+        with open ("Cadastros.txt", "r", encoding = 'UTF-8') as f:
             linhas = f.readlines()
             for i in range(0, len(linhas), 4):
                 try:
@@ -241,7 +240,7 @@ Parâmetros: email
 Retorna: True se o email for = ao email cadastrado, se não retorna False
     """
     try:
-        with open("Cadastros.txt", "r", encoding = 'cp1252') as f:
+        with open("Cadastros.txt", "r", encoding = 'UTF-8') as f:
             linhas = f.readlines()
             for i in range(0, len(linhas), 4):
                 try:
@@ -263,7 +262,7 @@ Parâmetros: usuario
 Retorna: True se o usuário for = ao usuário cadastrado, se não retorna False
     """
     try:
-        with open("Cadastros.txt", "r", encoding = 'cp1252') as f:
+        with open("Cadastros.txt", "r", encoding = 'UTF-8') as f:
             linhas = f.readlines()
             for i in range(0, len(linhas), 4):
                 try:
@@ -289,7 +288,7 @@ Parâmetros: ()
         login_usuario = input("Digite o seu nome de usuário: ")
         login_senha = input("Digite sua senha: ")
         try:
-            with open("Cadastros.txt", "r", encoding = 'cp1252') as f:
+            with open("Cadastros.txt", "r", encoding = 'UTF-8') as f:
                 linhas = f.readlines()
                 for i in range(0, len(linhas), 4):
                     try:
@@ -300,9 +299,10 @@ Parâmetros: ()
                             return usuario_cadastrado
                     except IndexError:
                         continue
-            print("❌ Usuário ou senha incorretos")
+            print("❌ Usuário ou senha incorretos", "\n")
+            break
         except FileNotFoundError:
-            print("❌ Cadastro não existe")
+            print("❌ Cadastro não existe", "\n")
 
 
 def cadastro():
@@ -354,7 +354,7 @@ Parâmetros: ()
             print("✅ Email válido","\n")
             print("Redirecionando para o menu do site")
             break
-    with open("Cadastros.txt", "a", encoding = 'cp1252') as f:
+    with open("Cadastros.txt", "a", encoding = 'UTF-8') as f:
         f.write(usuario + "\n")
         f.write(senha + "\n")
         f.write(email + "\n")
@@ -386,9 +386,8 @@ Parâmetros: usuário
             coleta_de_dados()
             continue
         elif resposta_menu == "2":
-            menu_metas()
-            continue
-
+                menu_metas()
+                continue
         elif resposta_menu == "3":
             usuario = ver_perfil_usuario(usuario)
         elif resposta_menu == "4":
@@ -396,6 +395,8 @@ Parâmetros: usuário
             print("Obrigado por usar o Metacash até logo!👋")
             print("\n======================================")
             break
+        else:
+            print("Resposta inválida")
 
         
 def central_do_site():
@@ -601,57 +602,6 @@ def consultar_metas(arquivo):
         print("❌Nenhuma meta cadastrada até o momento.❌")
     print("\n=============================================================\n")
 
-
-#  Função para cadastrar novo usuário
-def cadastrar_usuario(arquivo):
-    """
-    Ler os dados imputados pelo usuário como nome, salário, prazo e metas. Para armazenar as informações, para as utilizar em outras funções
-    Solicita nome e salário do usuário, verifica se já existe 
-    um usuário com o mesmo nome, e adiciona um novo usuário ao arquivo.
-
-    Args:
-        arquivo (str): Caminho do arquivo onde os dados dos usuários estão armazenados.
-
-    Returns:
-        None
-    """
-    usuarios = carregar_usuarios(arquivo)
-    nome = input("Digite o nome do novo usuário: ").strip()
-
-    # Verifica se o usuário já existe
-    for u in usuarios:
-        if u['nome'].lower() == nome.lower():
-            print("\n========================")
-            print("❌-Usuário já cadastrado.")
-            print("\n========================")
-            return
-
-    while True:
-        try:
-            salario = float(input("Digite o salário do usuário: R$"))
-            if salario <= 0:
-                print("\n=======================================")
-                print("❌-Salário inválido, tente novamente.")
-                print("\n=======================================")
-                continue
-            break
-        except ValueError:
-            print("\n==================================")
-            print("❌-Digite um valor numérico válido.")
-            print("\n==================================")
-
-    usuarios.append({
-        'nome': nome,
-        'salario': salario,
-        'meta': '',
-        'prazo': ''
-    })
-
-    salvar_usuarios(arquivo, usuarios)
-    print("\n=========================================")
-    print(f"✅-Usuário {nome} cadastrado com sucesso!")
-    print("\n=========================================")
-
 #Registro de Gasto#
 def validar_registro_gasto(mensagem):
     """
@@ -767,7 +717,8 @@ def coleta_de_dados():
     - None
     """
     global login_usuario  # garante que estamos usando o usuário logado
-
+    global coleta_de_dados_feita
+    coleta_de_dados_feita = True 
     print("================================")
     print("Informe seus dados financeiros")
     print("================================")
@@ -777,7 +728,7 @@ def coleta_de_dados():
     email = None
 
     try:
-        with open("Cadastros.txt", "r", encoding='cp1252') as arquivo:
+        with open("Cadastros.txt", "r", encoding='UTF-8') as arquivo:
             linhas = arquivo.readlines()
             for i in range(0, len(linhas), 4):
                 u = linhas[i].strip()
@@ -844,7 +795,7 @@ def carregar_usuarios(arquivo):
     """
     usuarios = []
     try:
-        with open(arquivo, 'r', encoding='utf-8') as f:
+        with open(arquivo, 'r', encoding='UTF-8') as f:
             for linha in f:
                 partes = linha.strip().split('|')
                 if len(partes) >= 4:
@@ -872,7 +823,7 @@ def carregar_usuarios_arquivo(arquivo):
     """
     usuarios = []
     try:
-        with open(arquivo, 'r', encoding='utf-8') as f:
+        with open(arquivo, 'r', encoding='UTF-8') as f:
             for linha in f:
                 partes = linha.strip().split(':')
                 if len(partes) >= 13:
@@ -910,7 +861,7 @@ def salvar_usuarios_arquivo(arquivo, usuarios):
     Retorna:
     - None
     """
-    with open(arquivo, 'w', encoding='utf-8') as f:
+    with open(arquivo, 'w', encoding='UTF-8') as f:
         for u in usuarios:
             linha = (f"{u['usuario']}:{u['senha']}:{u['email']}:{u['salario']}:{u['valor_meta']}:"
                      f"{u['progresso']}:{u['prazo']}:{u['alimentacao']}:{u['lazer']}:"
@@ -966,7 +917,7 @@ def criar_ou_atualizar_meta(arquivo, nome_usuario):
             valor_meta = float(input("\n 💵- Digite o valor total da meta: R$ "))
             if valor_meta <= 0 or valor_meta > salario * 10:  # limite arbitrário para evitar erro
                 print("\n======================================")
-                print(" ❌ Valor da meta irrealita, tente novamente.")
+                print(" ❌ Valor da meta irrealista, tente novamente.")
                 print("\n======================================")
                 continue
             break
@@ -1146,6 +1097,18 @@ Voltar ao menu principal.,
     """
     global login_usuario
     arquivo = "usuarios.txt"
+    nome_usuario = login_usuario
+
+    usuarios = carregar_usuarios_arquivo(arquivo)
+    usuario = encontrar_usuario(usuarios, nome_usuario)
+
+    # Verifica se o usuário já preencheu a coleta de dados
+    if usuario is None:
+        print("\n============================================================")
+        print("⚠️  Atenção! Você precisa preencher seus dados no Menu MetaCash.")
+        print("    Acesse 'Coleta de Dados' antes de criar ou gerenciar metas.")
+        print("============================================================\n")
+        return
     print("======== MENU DE METAS ========")
     nome_usuario = login_usuario 
 
@@ -1166,7 +1129,6 @@ Voltar ao menu principal.,
             ver_progresso(arquivo, nome_usuario)
         elif opcao == '4':
             print("Saindo...")
-            menu_metacash()
             break  # <-- Importante: precisa ter break para não ficar em loop infinito
 
         else:
