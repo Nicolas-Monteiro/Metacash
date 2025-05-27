@@ -11,4 +11,6 @@ RF1.6: Acesso ao Gerenciador
 RF2.1: Definir e Criar Metas
 RF2.3: Permitir Input de valores de renda, gastos fixos e variáveis
 
-Drive com os principais fluxogramas do projeto: 
+uso do módulo os: para acessar informações do sistema operacional do computador, usado no codigo para criar e editar arquivos
+
+Drive com os principais fluxogramas do projeto: https://drive.google.com/drive/folders/1cc7KhsOQPP752RGZlG_YJhrb04sT5AXg?usp=sharing
