@@ -24,7 +24,7 @@
   * Permite que o usuário guarde seus dados financeiros, que são usados para trazer uma experiência mais realista ao estilo de vida do usuário.
   
 ##  💻 Detalhes Técnicos
-* **uso do módulo os para acessar informações do sistema operacional do computador, usado no codigo para criar e editar arquivos
+* **uso do módulo os para acessar informações do sistema operacional do computador, usado no codigo para criar e editar arquivos**
 
 ## 📈Fluxogramas do Projeto
-* **Drive com os principais fluxogramas do projeto: https://drive.google.com/drive/folders/1cc7KhsOQPP752RGZlG_YJhrb04sT5AXg?usp=sharing
+* **Drive com os principais fluxogramas do projeto (https://drive.google.com/drive/folders/1cc7KhsOQPP752RGZlG_YJhrb04sT5AXg?usp=sharing)**
