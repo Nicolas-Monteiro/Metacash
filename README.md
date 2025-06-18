@@ -20,7 +20,7 @@
   * Garante o acesso as principais funcionalidades da aplicação
 * **RF2.1: Definir e Criar Metas**
   * Permite que o usuário crie e monitore metas, podendo registrar gastos diariamente e assistir sua progressão da meta.
-* **RF2.3: Permitir Input de valores de renda, gastos fixos e variáveis
+* **RF2.3: Permitir Input de valores de renda, gastos fixos e variáveis**
   * Permite que o usuário guarde seus dados financeiros, que são usados para trazer uma experiência mais realista ao estilo de vida do usuário.
   
 ##  💻 Detalhes Técnicos
