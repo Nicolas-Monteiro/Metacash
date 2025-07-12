@@ -1,7 +1,6 @@
 import flet as ft
 import time
-from popup import Popup
-import utils
+from utils import botao_animado, Popup
 
 class Interface_Inicial:
     def __init__(self):
@@ -114,7 +113,7 @@ class Interface_Inicial:
                         ft.TextField(label="Senha", password=True, can_reveal_password=True, width=300, icon=ft.Icons.LOCK),
                         ft.ElevatedButton(
                             "Entrar", width=300, style=ft.ButtonStyle(bgcolor="#06d675", color=ft.Colors.WHITE),
-                            on_click=self.login_click, on_hover=utils.botao_animado
+                            on_click=self.login_click, on_hover= botao_animado
                         )
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -132,7 +131,7 @@ class Interface_Inicial:
                         ft.Text("Ainda não tem uma conta?"),
                         ft.ElevatedButton(
                             "Cadastre-se", width=300, style=ft.ButtonStyle(bgcolor="#06d675", color=ft.Colors.WHITE),
-                            on_click=self.menu_cadastro, on_hover=utils.botao_animado
+                            on_click=self.menu_cadastro, on_hover=botao_animado
                         )
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -163,7 +162,7 @@ class Interface_Inicial:
         back_button = ft.IconButton(
             icon=ft.Icons.ARROW_BACK, icon_color=ft.Colors.WHITE, bgcolor="#06d675", icon_size=30,
             on_click=self.menu_login,
-            on_hover=utils.botao_animado
+            on_hover=botao_animado
         )
 
         titulo = ft.Text("Criar Conta no MetaCash", size=24, weight=ft.FontWeight.BOLD)
@@ -212,7 +211,7 @@ class Interface_Inicial:
         
         botao_cadastrar = ft.ElevatedButton(
             "Cadastrar", width=300, style=ft.ButtonStyle(bgcolor="#06d675", color=ft.Colors.WHITE),
-            on_click= self.cadastrar_click, on_hover=utils.botao_animado
+            on_click= self.cadastrar_click, on_hover=botao_animado
         )
 
         layout_central = ft.Row(
