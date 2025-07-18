@@ -21,6 +21,7 @@ class GerenciadorDeDados:
                 json.dump(dados, f, indent= 4)
             return True
         except (IOError, OSError, TypeError) as e:
+            print(f"Erro ao salvar dados: {e}")
             return False
         
     def encontrar_usuario(self, nome_usuario: str) -> Usuario | None:
@@ -38,15 +39,19 @@ class GerenciadorDeDados:
         self._salvar_dados_usuario(dados)
 
     def deletar_usuario(self, nome_usuario: str) -> bool:
-        """Deleta um usuário do arquivo Json"""
+        """Deleta um usuário do arquivo Json e salva a alteração."""
         dados = self._carregar_dados_usuario()
-        if nome_usuario.lower() in dados:
-            del dados[nome_usuario.lower()]
+        nome_usuario_lower = nome_usuario.lower()
+        if nome_usuario_lower in dados:
+            del dados[nome_usuario_lower]
+            # CORREÇÃO CRÍTICA: Salva o dicionário modificado de volta para o ficheiro JSON.
+            return self._salvar_dados_usuario(dados)
+        return False
 
-    def email_ja_existe(self, email: str) -> bool:
+    def email_existe(self, email: str) -> bool:
         """Verifica se o email já existe no arquivo"""
         dados = self._carregar_dados_usuario()
         for dados_usuario in dados.values():
             if dados_usuario.get("email", "").lower() == email.lower():
                 return True
-            return False
+        return False

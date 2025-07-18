@@ -1,0 +1,32 @@
+{
+    "nica": {
+        "nome_usuario": "nica",
+        "senha": "n12345678",
+        "email": "n@gmail.com",
+        "salario": 4412.0,
+        "gastos_fixos": 412.0,
+        "gastos_alimentacao": 22.0,
+        "gastos_transporte": 31.0,
+        "gastos_lazer": 11.0,
+        "preferencias_gastos": {
+            "alimentacao": 2,
+            "transporte": 4,
+            "lazer": 5
+        },
+        "verificado": true,
+        "meta": {
+            "nome": "bbc",
+            "valor_total": 2400.0,
+            "prazo_dias": 200,
+            "progresso_atual": 555.0,
+            "data_inicio": "2025-07-18T12:55:53.930611",
+            "historico": [
+                {
+                    "data": "18/07/2025",
+                    "valor": 555.0
+                }
+            ],
+            "marcos_atingidos": []
+        }
+    }
+}

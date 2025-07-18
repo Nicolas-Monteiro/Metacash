@@ -43,8 +43,10 @@ class ValidadorDeFormato:
 
 def enviar_email(destinatario: str, assunto: str, corpo: str) -> bool:
     """Envia um email usando as credenciais das variáveis de ambiente."""
-    remetente = os.getenv("EMAIL_REMETENTE")
-    senha_app = os.getenv("SENHA_APP_EMAIL")
+    #remetente = os.getenv("EMAIL")
+    #senha_app = os.getenv("SENHA-APP")
+    remetente = "nicaciodev313@gmail.com"
+    senha_app = "jxnf byvk quyr tsav"
 
     if not remetente or not senha_app:
         print("[ERRO DE SISTEMA] Variáveis de ambiente para envio de e-mail não configuradas.")
@@ -56,11 +58,33 @@ def enviar_email(destinatario: str, assunto: str, corpo: str) -> bool:
     msg['To'] = destinatario
     msg.set_content(corpo)
 
+    smtp = None
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(remetente, senha_app)
-            smtp.send_message(msg)
+       
+        print("[DEBUG] Tentando conectar ao servidor SMTP do Gmail na porta 587 (timeout de 15s)...", flush=True)
+        smtp = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
+        print("[DEBUG] Conexão estabelecida. Enviando comando EHLO...", flush=True)
+        smtp.ehlo()
+        print("[DEBUG] Iniciando conexão segura com STARTTLS...", flush=True)
+        smtp.starttls()
+        print("[DEBUG] Conexão segura estabelecida. Tentando fazer login...", flush=True)
+        smtp.login(remetente, senha_app)
+        print("[DEBUG] Login bem-sucedido. Tentando enviar a mensagem...", flush=True)
+        smtp.send_message(msg)
+        print("[DEBUG] Mensagem enviada.", flush=True)
+
+        print(f"[INFO] E-mail enviado com sucesso para {destinatario}", flush=True)
         return True
-    except Exception as e:
-        print(f"[ERRO DE SISTEMA] Falha ao enviar o email: {e}")
+    except smtplib.SMTPAuthenticationError:
+        print(f"[ERRO DE SISTEMA] Falha na autenticação. Verifique o e-mail e a senha de app.", flush=True)
         return False
+    except TimeoutError:
+        print(f"[ERRO DE SISTEMA] A conexão demorou muito para responder (Timeout). Verifique sua conexão ou possível bloqueio de firewall.", flush=True)
+        return False
+    except Exception as e:
+        print(f"[ERRO DE SISTEMA] Falha ao enviar o email: {e}", flush=True)
+        return False
+    finally:
+        
+            print("[DEBUG] Fechando conexão SMTP.", flush=True)
+            smtp.quit()
