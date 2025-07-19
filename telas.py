@@ -42,12 +42,51 @@ class TelaCriarEditarMeta:
             self.feedback_realismo.update()
             
     def _salvar_click(self, e):
-        if not all([self.nome_meta.value, self.valor_meta.value, self.prazo_meta.value]):
-            self.feedback_realismo.value = "Todos os campos são obrigatórios."
-            self.feedback_realismo.color = ft.Colors.RED
-            self.feedback_realismo.update()
+        # Limpa erros anteriores
+        self.nome_meta.error_text = None
+        self.valor_meta.error_text = None
+        self.prazo_meta.error_text = None
+        
+        formulario_valido = True
+
+        # Validação do nome
+        if not self.nome_meta.value:
+            self.nome_meta.error_text = "O nome da meta é obrigatório."
+            formulario_valido = False
+        
+        # Validação do valor
+        try:
+            valor = float(self.valor_meta.value)
+            if valor <= 0:
+                self.valor_meta.error_text = "O valor deve ser um número positivo."
+                formulario_valido = False
+        except (ValueError, TypeError):
+            self.valor_meta.error_text = "Valor inválido. Use apenas números."
+            formulario_valido = False
+
+        # Validação do prazo
+        try:
+            prazo = int(self.prazo_meta.value)
+            if prazo <= 0:
+                self.prazo_meta.error_text = "O prazo deve ser maior que zero."
+                formulario_valido = False
+        except (ValueError, TypeError):
+            self.prazo_meta.error_text = "Prazo inválido. Use apenas números inteiros."
+            formulario_valido = False
+            
+        # Se o formulário não for válido, atualiza os campos com os erros e para
+        if not formulario_valido:
+            self.nome_meta.update()
+            self.valor_meta.update()
+            self.prazo_meta.update()
             return
-        self.on_save(self.nome_meta.value, float(self.valor_meta.value), int(self.prazo_meta.value))
+
+        # Se tudo estiver correto, chama a função de salvar
+        self.on_save(
+            self.nome_meta.value,
+            float(self.valor_meta.value),
+            int(self.prazo_meta.value)
+        )
 
     def build(self):
         titulo = "Editar Meta" if self.meta and self.meta.valor_total > 0 else "Criar Nova Meta"
@@ -167,4 +206,130 @@ class TelaPrincipalMeta:
                 ft.Column([tabela_historico], scroll=ft.ScrollMode.AUTO, expand=True) 
             ],
             expand=True, spacing=10, alignment=ft.MainAxisAlignment.START, horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        )
+    
+#Classe para fazer a tela do relatório
+
+class TelaRelatorios:
+    def __init__(self, dados_relatorio):
+        self.dados_grafico = dados_relatorio.get("dados_grafico", {})
+        self.recomendacao = dados_relatorio.get("recomendacao", "")
+        self.dica_diaria = dados_relatorio.get("dica_diaria", "")
+        self.pie_chart = None
+
+        # --- ESTILOS E TAMANHOS DEFINIDOS EXATAMENTE COMO NO SEU EXEMPLO ---
+        self.normal_radius = 160
+        self.hover_radius = 180
+        self.normal_title_style = ft.TextStyle(size=20, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)
+        self.hover_title_style = ft.TextStyle(
+            size=26,
+            color=ft.Colors.WHITE,
+            weight=ft.FontWeight.BOLD,
+            shadow=ft.BoxShadow(blur_radius=2, color=ft.Colors.BLACK54),
+        )
+        self.normal_badge_size = 50
+        self.hover_badge_size = 65
+
+    def _badge(self, icon, size):
+        """Função auxiliar para criar o ícone (badge), como no seu exemplo."""
+        return ft.Container(
+            ft.Icon(icon, color=ft.Colors.with_opacity(0.7, ft.Colors.BLACK)),
+            width=size,
+            height=size,
+            border=ft.border.all(1, ft.Colors.BROWN),
+            border_radius=size / 2,
+            bgcolor=ft.Colors.WHITE,
+        )
+
+    def _on_chart_event(self, e: ft.PieChartEvent):
+       
+        for idx, section in enumerate(self.pie_chart.sections):
+            if idx == e.section_index:
+                section.radius = self.hover_radius
+                section.title_style = self.hover_title_style
+                section.badge.width = self.hover_badge_size
+                section.badge.height = self.hover_badge_size
+            else:
+                section.radius = self.normal_radius
+                section.title_style = self.normal_title_style
+                section.badge.width = self.normal_badge_size
+                section.badge.height = self.normal_badge_size
+        
+        # A única chamada de atualização necessária, como no seu exemplo.
+        self.pie_chart.update()
+
+    def build(self):
+        total_valor = sum(item['valor'] for item in self.dados_grafico.values() if item['valor'] > 0)
+        if total_valor == 0: total_valor = 1
+
+        secoes_grafico = []
+        for categoria, dados in self.dados_grafico.items():
+            if dados['valor'] > 0:
+                percentual_atual = (dados['valor'] / total_valor) * 100
+                secoes_grafico.append(
+                    ft.PieChartSection(
+                        dados['valor'],
+                        title=f"{percentual_atual:.1f}%",
+                        title_style=self.normal_title_style,
+                        color=dados['cor'],
+                        radius=self.normal_radius,
+                        badge=self._badge(dados['icone'], self.normal_badge_size),
+                        badge_position=0.98,
+                    )
+                )
+
+        self.pie_chart = ft.PieChart(
+            sections=secoes_grafico,
+            sections_space=0,
+            center_space_radius=0,
+            on_chart_event=self._on_chart_event, 
+            height=600,
+            expand=True
+        )
+
+        legenda = ft.Row(
+            controls=[
+                ft.Row([
+                    ft.Container(width=18, height=18, bgcolor=dados['cor'], border_radius=4),
+                    ft.Icon(name=dados['icone'], size=18),
+                    ft.Text(categoria, size=14)
+                ], spacing=8) for categoria, dados in self.dados_grafico.items() if dados['valor'] > 0
+            ],
+            wrap=True, alignment=ft.MainAxisAlignment.CENTER, spacing=25
+        )
+
+        grafico_container = ft.Card(elevation=10, content=ft.Container(
+            padding=ft.padding.symmetric(vertical=30, horizontal=20),
+            content=ft.Column(
+                [
+                    ft.Text("Distribuição de Gastos Mensais", size=24, weight=ft.FontWeight.BOLD),
+                    self.pie_chart,
+                    legenda,
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=20
+            )
+        ))
+        
+        dica_container = ft.Card(elevation=10, content=ft.Container(
+            padding=20,
+            content=ft.Column([
+                ft.Row([ft.Icon(ft.Icons.LIGHTBULB_CIRCLE, color=ft.Colors.AMBER), ft.Text("Dica de Economia do Dia", size=18, weight=ft.FontWeight.BOLD)]),
+                ft.Divider(),
+                ft.Text(self.dica_diaria, size=16, italic=True)
+            ])
+        ))
+        
+        recomendacao_container = ft.Card(elevation=10, content=ft.Container(
+            padding=20,
+            content=ft.Column([
+                ft.Row([ft.Icon(ft.Icons.INSIGHTS, color=ft.Colors.CYAN), ft.Text("Diagnóstico Financeiro", size=18, weight=ft.FontWeight.BOLD)]),
+                ft.Divider(),
+                ft.Text(self.recomendacao, size=16, selectable=True)
+            ])
+        ))
+
+        return ft.Column(
+            controls=[grafico_container, dica_container, recomendacao_container],
+            scroll=ft.ScrollMode.AUTO, spacing=25, expand=True,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )

@@ -1,3 +1,4 @@
+import flet as ft
 import random
 from datetime import datetime, timedelta
 from gerenciador_dados import GerenciadorDeDados
@@ -11,6 +12,8 @@ class MetacashLogica:
         self.usuario_logado: Usuario | None = None
         self.usuario_pendente_2fa: Usuario | None = None
 
+    #Lógicas de Perfil e usuário
+    
     def processar_login(self, nome_usuario: str, senha_texto_plano: str) -> tuple[bool, str, bool]:
        
         usuario = self.gerenciador.encontrar_usuario(nome_usuario)
@@ -154,6 +157,9 @@ class MetacashLogica:
         self.gerenciador.salvar_usuario(self.usuario_logado)
         return (True, "Senha alterada com sucesso!")
    
+   
+   #Lógicas de Metas
+   
     def analisar_realismo_meta(self, valor_meta: float, prazo_dias: int) -> tuple[bool, str]:
         """Verifica se a meta é realista com base na renda disponível mensal."""
         if not self.usuario_logado or prazo_dias <= 0:
@@ -262,3 +268,136 @@ class MetacashLogica:
             return dias_restantes, f"Atenção! Faltam apenas {dias_restantes} dias para o fim do prazo."
             
         return dias_restantes, None
+    
+    
+    #Lógicas de Relatíorio
+
+    def get_dados_relatorio(self) -> dict:
+        """Prepara todos os dados para a tela de relatórios, incluindo emojis e percentuais para o tooltip."""
+        if not self.usuario_logado:
+            return {}
+
+        u = self.usuario_logado
+        orcamento_ideal = self._get_orcamento_ideal()
+        
+        gastos_variaveis = u.gastos_alimentacao + u.gastos_transporte + u.gastos_lazer
+        total_gastos = u.gastos_fixos + gastos_variaveis
+        sobra = u.salario - total_gastos
+
+        # Calcula o total para encontrar o percentual de cada fatia
+        total_geral = total_gastos + max(0, sobra)
+        if total_geral == 0: total_geral = 1 
+
+        dados_grafico = {
+            "Gastos Fixos": {"valor": u.gastos_fixos, "icone": ft.Icons.HOUSE_ROUNDED, "cor": ft.Colors.BLUE_GREY, "ideal_percent": None, "emoji": "🏠"},
+            "Alimentação": {"valor": u.gastos_alimentacao, "icone": ft.Icons.FASTFOOD, "cor": ft.Colors.ORANGE, "ideal_percent": orcamento_ideal.get("Alimentação"), "emoji": "🍔"},
+            "Transporte": {"valor": u.gastos_transporte, "icone": ft.Icons.DIRECTIONS_BUS, "cor": ft.Colors.GREEN, "ideal_percent": orcamento_ideal.get("Transporte"), "emoji": "🚗"},
+            "Lazer": {"valor": u.gastos_lazer, "icone": ft.Icons.SPORTS_ESPORTS, "cor": ft.Colors.PURPLE, "ideal_percent": orcamento_ideal.get("Lazer"), "emoji": "🎮"},
+            "Sobra/Economia": {"valor": max(0, sobra), "icone": ft.Icons.SAVINGS, "cor": ft.Colors.TEAL, "ideal_percent": None, "emoji": "💰"}
+        }
+
+        # Adiciona o percentual atual a cada item para usar no tooltip
+        for categoria, dados in dados_grafico.items():
+            dados['percentual_atual'] = (dados['valor'] / total_geral) * 100
+
+        maior_gasto_variavel = max(
+            ("Alimentação", u.gastos_alimentacao),
+            ("Transporte", u.gastos_transporte),
+            ("Lazer", u.gastos_lazer),
+            key=lambda item: item[1]
+        )[0]
+
+        return {
+            "dados_grafico": dados_grafico,
+            "recomendacao": self._gerar_recomendacao_gastos(),
+            "dica_diaria": self._get_dica_diaria(maior_gasto_variavel)
+        }
+    
+    def _get_orcamento_ideal(self) -> dict:
+        """Calcula o percentual ideal para cada categoria de gasto variável."""
+        u = self.usuario_logado
+        prefs = u.preferencias_gastos
+        total_pesos = sum(prefs.values())
+        
+        if total_pesos == 0:
+            return {}
+
+        orcamento = {}
+        for categoria, peso in prefs.items():
+            percentual = (peso / total_pesos) * 100
+            # A chave aqui deve corresponder às chaves em dados_grafico
+            if categoria == 'alimentacao': orcamento['Alimentação'] = percentual
+            if categoria == 'transporte': orcamento['Transporte'] = percentual
+            if categoria == 'lazer': orcamento['Lazer'] = percentual
+        
+        return orcamento
+    
+    def _get_dica_diaria(self, maior_gasto: str) -> str:
+        """Retorna uma dica de economia diária com emojis e mais opções."""
+        dicas = {
+            "Alimentação": [
+                "🍲 Planeje suas refeições da semana para evitar compras por impulso.",
+                "🧊 Cozinhe em maior quantidade e congele porções para os dias corridos.",
+                "🍎 Leve lanches de casa para o trabalho ou estudo.",
+                "🛒 Compare preços e aproveite promoções em diferentes supermercados.",
+                "💧 Beba mais água. Muitas vezes confundimos sede com fome.",
+                "☕ Faça seu próprio café em casa em vez de comprar todos os dias."
+            ],
+            "Transporte": [
+                "🚌 Considere usar transporte público um ou dois dias na semana.",
+                "🚗 Combine caronas com colegas de trabalho ou amigos.",
+                "🔧 Faça a manutenção do seu veículo. Pneus calibrados economizam combustível.",
+                "🚲 Para distâncias curtas, experimente caminhar ou usar uma bicicleta.",
+                "⛽ Pesquise postos com combustível mais barato na sua rota.",
+                "🗺️ Planeje suas rotas para evitar trânsito e pedágios desnecessários."
+            ],
+            "Lazer": [
+                "🌳 Procure por eventos gratuitos na sua cidade, como parques e shows ao ar livre.",
+                "🏡 Reúna amigos em casa em vez de sempre sair para bares e restaurantes.",
+                "🎟️ Aproveite promoções de cinema ou dias com ingressos mais baratos.",
+                "📺 Cancele serviços de streaming que você não está utilizando com frequência.",
+                "📚 Use bibliotecas públicas para ler livros e revistas sem custo.",
+                "💪 Cancele a academia se não estiver indo e opte por exercícios ao ar livre."
+            ]
+        }
+        
+        lista_de_dicas = dicas.get(maior_gasto, ["💰 Planeje seu orçamento e acompanhe seus gastos de perto."])
+        dia_do_ano = datetime.now().timetuple().tm_yday
+        indice_dica = dia_do_ano % len(lista_de_dicas)
+        
+        return lista_de_dicas[indice_dica]
+    
+    def _gerar_recomendacao_gastos(self) -> str:
+        """Gera uma recomendação de orçamento baseada nas prioridades do usuário."""
+        u = self.usuario_logado
+        prefs = u.preferencias_gastos
+        total_pesos = sum(prefs.values())
+        
+        if total_pesos == 0:
+            return "Defina suas prioridades de gastos no seu perfil para receber recomendações."
+
+        renda_para_variaveis = u.salario - u.gastos_fixos
+        if renda_para_variaveis < 0:
+            return "Atenção: Seus gastos fixos já ultrapassam seu salário. Reveja seu orçamento com urgência."
+
+        recomendacoes = []
+        
+        mapa_categorias = {
+            'alimentacao': ('Alimentação', u.gastos_alimentacao),
+            'transporte': ('Transporte', u.gastos_transporte),
+            'lazer': ('Lazer', u.gastos_lazer)
+        }
+        
+        for chave_pref, peso in prefs.items():
+            nome_categoria, gasto_atual = mapa_categorias[chave_pref]
+            orcamento_ideal = (peso / total_pesos) * renda_para_variaveis
+            
+            diferenca = gasto_atual - orcamento_ideal
+            # Alerta se o gasto estiver 10% acima do ideal para aquela prioridade
+            if diferenca > (orcamento_ideal * 0.1):
+                recomendacoes.append(f"Seu gasto com {nome_categoria.lower()} (R$ {gasto_atual:.2f}) está acima do ideal de R$ {orcamento_ideal:.2f} para suas prioridades.")
+
+        if not recomendacoes:
+            return "Seus gastos estão bem alinhados com suas prioridades. Ótimo trabalho!"
+        
+        return " ".join(recomendacoes)

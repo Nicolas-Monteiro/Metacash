@@ -3,7 +3,7 @@ import time
 from utils import *
 from logica_meta import MetacashLogica
 from validadores import ValidadorDeFormato
-from telas import TelaSemMeta, TelaCriarEditarMeta, TelaPrincipalMeta
+from telas import TelaSemMeta, TelaCriarEditarMeta, TelaPrincipalMeta, TelaRelatorios
 
 class Interface_Inicial:
     def __init__(self):
@@ -150,6 +150,23 @@ class Interface_Inicial:
         self.page.snack_bar.open = True
         self._exibir_tela_de_metas()
 
+
+    # MÉTODOS DE RELATÓRIO
+
+    def _exibir_tela_relatorios(self):
+        self.main_content_area.controls.clear()
+        
+        dados_relatorio = self.logica.get_dados_relatorio()
+        
+        if not dados_relatorio:
+            self.main_content_area.controls.append(ft.Text("Não foi possível carregar os dados do relatório."))
+        else:
+            construtor_view = TelaRelatorios(dados_relatorio)
+            self.main_content_area.controls.append(construtor_view.build())
+            
+        self.page.update()
+
+
     # MÉTODOS DE ESTRUTURA E NAVEGAÇÃO
     def main(self, page: ft.Page):
         self.page = page
@@ -169,10 +186,14 @@ class Interface_Inicial:
         self._carregar_view_dashboard(e.control.selected_index)
 
     def _carregar_view_dashboard(self, index: int):
+        """Roteia a navegação para a tela correta."""
         self.main_content_area.controls.clear()
-        if index == 0: self.menu_perfil()
-        elif index == 1: self._exibir_tela_de_metas()
-        elif index == 2: self.main_content_area.controls.append(ft.Text("Calendário de Gastos (Em Breve)", size=30, text_align=ft.TextAlign.CENTER))
+        if index == 0:
+            self.menu_perfil()
+        elif index == 1:
+            self._exibir_tela_de_metas()
+        elif index == 2:
+            self._exibir_tela_relatorios()
         self.page.update()
 
     def menu_dashboard(self, e=None):
@@ -203,11 +224,47 @@ class Interface_Inicial:
         self._carregar_view_dashboard(0)
 
     def handle_salvar_edicao_click(self, e):
-        """Lida com o clique no botão 'Salvar Alterações' da tela de edição."""
-        nova_senha_campo = self.campos_edicao['nova_senha']
-        confirma_senha_campo = self.campos_edicao['confirma_senha']
-        nova_senha_campo.error_text = None
-        confirma_senha_campo.error_text = None
+        """Lida com o clique no botão 'Salvar', agora com validações de campo."""
+        # Limpa erros anteriores
+        for campo in self.campos_edicao.values():
+            campo.error_text = None
+
+        formulario_valido = True
+        
+        # Validação do Nome de Usuário
+        novo_nome = self.campos_edicao['nome_usuario'].value
+        if not novo_nome:
+            self.campos_edicao['nome_usuario'].error_text = "O nome de usuário não pode ser vazio."
+            formulario_valido = False
+        elif self.logica.usuario_logado.nome_usuario.lower() != novo_nome.lower() and self.logica.gerenciador.encontrar_usuario(novo_nome):
+            self.campos_edicao['nome_usuario'].error_text = "Este nome de usuário já está em uso."
+            formulario_valido = False
+
+        # Validação do Email
+        novo_email = self.campos_edicao['email'].value
+        if not novo_email:
+            self.campos_edicao['email'].error_text = "O e-mail não pode ser vazio."
+            formulario_valido = False
+        elif not ValidadorDeFormato.email_tem_dominio_valido(novo_email):
+            self.campos_edicao['email'].error_text = "O domínio do e-mail é inválido."
+            formulario_valido = False
+        elif self.logica.usuario_logado.email.lower() != novo_email.lower() and self.logica.gerenciador.email_existe(novo_email):
+            self.campos_edicao['email'].error_text = "Este e-mail já está em uso."
+            formulario_valido = False
+
+        # Validação de campos financeiros
+        campos_financeiros = ['salario', 'gastos_fixos', 'gastos_alimentacao', 'gastos_transporte', 'gastos_lazer']
+        for nome_campo in campos_financeiros:
+            campo = self.campos_edicao[nome_campo]
+            if not ValidadorDeFormato.validacao_de_valor_monetario(campo.value):
+                campo.error_text = "Valor inválido. Use apenas números positivos."
+                formulario_valido = False
+
+        # Se houver qualquer erro de validação, atualiza a tela e para a execução
+        if not formulario_valido:
+            self.page.update()
+            return
+            
         self.dados_edicao_pendentes = {
             "nome_usuario": self.campos_edicao['nome_usuario'].value,
             "email": self.campos_edicao['email'].value,
@@ -217,6 +274,11 @@ class Interface_Inicial:
             "gastos_transporte": self.campos_edicao['gastos_transporte'].value,
             "gastos_lazer": self.campos_edicao['gastos_lazer'].value,
         }
+        
+        nova_senha_campo = self.campos_edicao['nova_senha']
+        confirma_senha_campo = self.campos_edicao['confirma_senha']
+        
+        # Se o usuário preencheu o campo de nova senha
         if nova_senha_campo.value:
             valida_sucesso, valida_msg = ValidadorDeFormato.validacao_senha(nova_senha_campo.value)
             if not valida_sucesso:
@@ -227,6 +289,8 @@ class Interface_Inicial:
                 confirma_senha_campo.error_text = "As senhas não correspondem."
                 self.page.update()
                 return
+            
+            # Se a senha for válida, procede com a verificação 2FA
             self.dados_edicao_pendentes['nova_senha'] = nova_senha_campo.value
             self.dados_edicao_pendentes['confirma_senha'] = confirma_senha_campo.value
             sucesso_2fa, mensagem_2fa = self.logica.iniciar_2fa_para_edicao()
@@ -237,6 +301,7 @@ class Interface_Inicial:
                 self.page.snack_bar.open = True
                 self.page.update()
         else:
+            # Se não houver mudança de senha, salva os dados diretamente
             sucesso, mensagem = self.logica.atualizar_dados_usuario(self.dados_edicao_pendentes)
             self.page.snack_bar = ft.SnackBar(ft.Text(mensagem, color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN if sucesso else ft.Colors.RED)
             self.page.snack_bar.open = True
@@ -304,8 +369,31 @@ class Interface_Inicial:
        
         self.main_content_area.controls.clear()
         usuario = self.logica.usuario_logado
-        card_conta = ft.Card(elevation=10, content=ft.Container(padding=20, border_radius=10, content=ft.Column(controls=[ft.Text("Dados da Conta", size=20, weight=ft.FontWeight.BOLD), ft.Divider(), criar_linha_info(ft.Icons.PERSON, "Nome de Usuário:", usuario.nome_usuario), criar_linha_info(ft.Icons.EMAIL, "E-mail:", usuario.email)])))
-        card_financeiro = ft.Card(elevation=10, content=ft.Container(padding=20, border_radius=10, content=ft.Column(controls=[ft.Text("Resumo Financeiro", size=20, weight=ft.FontWeight.BOLD), ft.Divider(), criar_linha_info(ft.Icons.MONETIZATION_ON, "Salário Mensal:", f"R$ {usuario.salario:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), criar_linha_info(ft.Icons.PAYMENT, "Gastos Fixos:", f"R$ {usuario.gastos_fixos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), criar_linha_info(ft.Icons.FASTFOOD, "Gastos Alimentação:", f"R$ {usuario.gastos_alimentacao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), criar_linha_info(ft.Icons.DIRECTIONS_CAR, "Gastos Transporte:", f"R$ {usuario.gastos_transporte:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), criar_linha_info(ft.Icons.SPORTS_ESPORTS, "Gastos Lazer:", f"R$ {usuario.gastos_lazer:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")) ])))
+        card_conta = ft.Card(
+            elevation=10, 
+            content=ft.Container(
+                padding=20, 
+                border_radius=10, 
+                content=ft.Column(
+                    controls=[
+                        ft.Text("Dados da Conta", size=20, weight=ft.FontWeight.BOLD), 
+                        ft.Divider(), 
+                        criar_linha_info(ft.Icons.PERSON, "Nome de Usuário:", usuario.nome_usuario), 
+                        criar_linha_info(ft.Icons.EMAIL, "E-mail:", usuario.email)])))
+        card_financeiro = ft.Card(
+            elevation=10, 
+            content=ft.Container(
+                padding=20, 
+                border_radius=10, 
+                content=ft.Column(
+                    controls=[
+                        ft.Text("Resumo Financeiro", size=20, weight=ft.FontWeight.BOLD), 
+                        ft.Divider(), 
+                        criar_linha_info(ft.Icons.MONETIZATION_ON, "Salário Mensal:", f"R$ {usuario.salario:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), 
+                        criar_linha_info(ft.Icons.PAYMENT, "Gastos Fixos:", f"R$ {usuario.gastos_fixos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), 
+                        criar_linha_info(ft.Icons.FASTFOOD, "Gastos Alimentação:", f"R$ {usuario.gastos_alimentacao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), 
+                        criar_linha_info(ft.Icons.DIRECTIONS_CAR, "Gastos Transporte:", f"R$ {usuario.gastos_transporte:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")), 
+                        criar_linha_info(ft.Icons.SPORTS_ESPORTS, "Gastos Lazer:", f"R$ {usuario.gastos_lazer:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")) ])))
         alterar_btn = ft.ElevatedButton("Alterar Informações", icon=ft.Icons.EDIT, on_click=self.handle_alterar_info_click, style=ft.ButtonStyle(bgcolor="#2a7a9e", color=ft.Colors.WHITE))
         deletar_btn = ft.ElevatedButton("Deletar Conta", icon=ft.Icons.DELETE_FOREVER, on_click=self.handle_deletar_conta_click, style=ft.ButtonStyle(bgcolor=ft.Colors.RED_700, color=ft.Colors.WHITE))
         botoes_acao = ft.Row(controls=[alterar_btn, deletar_btn], alignment=ft.MainAxisAlignment.CENTER, spacing=20)
@@ -402,7 +490,7 @@ class Interface_Inicial:
             destinations=[
                 ft.NavigationRailDestination(icon=ft.Icons.PERSON_OUTLINE, selected_icon=ft.Icons.PERSON, label="Perfil"),
                 ft.NavigationRailDestination(icon=ft.Icons.STAR_BORDER, selected_icon=ft.Icons.STAR, label="Metas"),
-                ft.NavigationRailDestination(icon=ft.Icons.CALENDAR_MONTH_OUTLINED, selected_icon=ft.Icons.CALENDAR_MONTH, label="Calendário"),
+                ft.NavigationRailDestination(icon=ft.Icons.PIE_CHART_OUTLINE, selected_icon=ft.Icons.PIE_CHART, label="Relatórios"),
             ],
         )
         nav_rail_container = ft.Container(content=self.nav_rail, on_hover=self.expand_nav_rail, height=self.page.window.height - 50)
@@ -647,15 +735,15 @@ class Interface_Inicial:
         self.main_view_container.content = None
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-        self.cadastro_usuario = ft.TextField(label="Usuário", width=300, icon=ft.Icons.PERSON)
-        self.cadastro_email = ft.TextField(label="E-mail", width=300, icon=ft.Icons.EMAIL)
-        self.cadastro_senha = ft.TextField(label="Senha", password=True, can_reveal_password=True, width=300, icon=ft.Icons.LOCK)
-        self.cadastro_confirma_senha = ft.TextField(label="Confirmar Senha", password=True, width=300, icon=ft.Icons.LOCK)
-        self.cadastro_salario = ft.TextField(label="Salário", width=300, prefix_text="R$")
-        self.cadastro_gastos_fixos = ft.TextField(label="Gastos Fixos Mensais", width=300, prefix_text="R$")
-        self.cadastro_gastos_alimentacao = ft.TextField(label="Gastos com Alimentação", width=300, prefix_text="R$")
-        self.cadastro_gastos_transporte = ft.TextField(label="Gastos com Transporte", width=300, prefix_text="R$")
-        self.cadastro_gastos_lazer = ft.TextField(label="Gastos com Lazer", width=300, prefix_text="R$")
+        self.cadastro_usuario = ft.TextField(label="Usuário", width=350, icon=ft.Icons.PERSON)
+        self.cadastro_email = ft.TextField(label="E-mail", width=350, icon=ft.Icons.EMAIL)
+        self.cadastro_senha = ft.TextField(label="Senha", password=True, can_reveal_password=True, width=350, icon=ft.Icons.LOCK)
+        self.cadastro_confirma_senha = ft.TextField(label="Confirmar Senha", password=True, width=350, icon=ft.Icons.LOCK)
+        self.cadastro_salario = ft.TextField(label="Salário", width=350, prefix_text="R$")
+        self.cadastro_gastos_fixos = ft.TextField(label="Gastos Fixos Mensais", width=350, prefix_text="R$")
+        self.cadastro_gastos_alimentacao = ft.TextField(label="Gastos com Alimentação", width=350, prefix_text="R$")
+        self.cadastro_gastos_transporte = ft.TextField(label="Gastos com Transporte", width=350, prefix_text="R$")
+        self.cadastro_gastos_lazer = ft.TextField(label="Gastos com Lazer", width=350, prefix_text="R$")
         self.slider_alimentacao = ft.Slider(min=1, max=5, divisions=4, value=3, width=150)
         self.slider_transporte = ft.Slider(min=1, max=5, divisions=4, value=3, width=150)
         self.slider_lazer = ft.Slider(min=1, max=5, divisions=4, value=3, width=150)
@@ -669,7 +757,7 @@ class Interface_Inicial:
                         ft.Text("Dados da Conta", size=20, weight=ft.FontWeight.BOLD), ft.Divider(thickness=1),
                         self.cadastro_usuario, self.cadastro_email, self.cadastro_senha, self.cadastro_confirma_senha,
                     ], spacing=15
-                ), padding=20, width=350, border_radius=15, bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
+                ), padding=20, width=400, border_radius=15, bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
             )
         )
         container_direita = ft.Card(
@@ -681,11 +769,11 @@ class Interface_Inicial:
                         self.cadastro_salario, self.cadastro_gastos_fixos,
                         self.cadastro_gastos_alimentacao, self.cadastro_gastos_transporte, self.cadastro_gastos_lazer,
                         ft.Text("Preferências de Gasto (1 a 5)", size=16, weight=ft.FontWeight.BOLD), ft.Divider(thickness=1),
-                        ft.Row([ft.Text("Alimentação", width=120), self.slider_alimentacao]),
-                        ft.Row([ft.Text("Transporte", width=120), self.slider_transporte]),
-                        ft.Row([ft.Text("Lazer", width=120), self.slider_lazer]),
+                        ft.Row([ft.Text("Alimentação", width=150), self.slider_alimentacao]),
+                        ft.Row([ft.Text("Transporte", width=150), self.slider_transporte]),
+                        ft.Row([ft.Text("Lazer", width=150), self.slider_lazer]),
                     ], spacing=10
-                ), padding=20, width=350, border_radius=15, bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
+                ), padding=20, width=400, border_radius=15, bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
             )
         )
         botao_cadastrar = ft.ElevatedButton("Cadastrar", width=300, style=ft.ButtonStyle(bgcolor="#06d675", color=ft.Colors.WHITE), on_click=self.cadastrar_click, on_hover=botao_animado)
