@@ -1,5 +1,5 @@
 import json
-from usuario import Usuario
+from modelos import Usuario
 
 class GerenciadorDeDados:
     """Realiza as operações que precisam de acesso ao arquivo Json"""

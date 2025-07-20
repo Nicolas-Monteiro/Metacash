@@ -2,8 +2,8 @@ import flet as ft
 import random
 from datetime import datetime, timedelta
 from gerenciador_dados import GerenciadorDeDados
-from usuario import Usuario, Meta
-from validadores import ValidadorDeFormato, enviar_email
+from modelos import Usuario, Meta
+from servicos import ValidadorDeFormato, enviar_email
 
 class MetacashLogica:
     def __init__(self):

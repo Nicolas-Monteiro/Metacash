@@ -2,7 +2,7 @@ import flet as ft
 import time
 from utils import *
 from logica_meta import MetacashLogica
-from validadores import ValidadorDeFormato
+from servicos import ValidadorDeFormato
 from telas import TelaSemMeta, TelaCriarEditarMeta, TelaPrincipalMeta, TelaRelatorios
 
 class Interface_Inicial:
