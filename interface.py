@@ -1,9 +1,13 @@
+from dotenv import load_dotenv
+load_dotenv()
 import flet as ft
 import time
 from utils import *
 from logica_meta import MetacashLogica
 from servicos import ValidadorDeFormato
 from telas import TelaSemMeta, TelaCriarEditarMeta, TelaPrincipalMeta, TelaRelatorios
+
+
 
 class Interface_Inicial:
     def __init__(self):
@@ -27,7 +31,6 @@ class Interface_Inicial:
         self.nav_rail = None
         self.campos_edicao = {}
         self.dados_edicao_pendentes = None
-
     # SEÇÃO DE MÉTODOS PARA GERENCIAR METAS
     
     def _executar_edicao_meta(self, nome, valor, prazo):

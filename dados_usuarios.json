@@ -32,5 +32,30 @@
             ],
             "marcos_atingidos": []
         }
+    },
+    "wasdwasd": {
+        "nome_usuario": "wasdwasd",
+        "senha": "wasdwasd1",
+        "email": "nikmonteiro27@gmail.com",
+        "salario": 4000.0,
+        "gastos_fixos": 100.0,
+        "gastos_alimentacao": 100.0,
+        "gastos_transporte": 100.0,
+        "gastos_lazer": 100.0,
+        "preferencias_gastos": {
+            "alimentacao": 5,
+            "transporte": 3,
+            "lazer": 4
+        },
+        "verificado": true,
+        "meta": {
+            "nome": "",
+            "valor_total": 0.0,
+            "prazo_dias": 0,
+            "progresso_atual": 0.0,
+            "data_inicio": null,
+            "historico": [],
+            "marcos_atingidos": []
+        }
     }
 }

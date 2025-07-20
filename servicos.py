@@ -43,8 +43,8 @@ class ValidadorDeFormato:
 
 def enviar_email(destinatario: str, assunto: str, corpo: str) -> bool:
     """Envia um email usando as credenciais das variáveis de ambiente."""
-    remetente = os.getenv("EMAIL")
-    senha_app = os.getenv("SENHA-APP")
+    remetente = os.getenv("EMAIL_REMETENTE")
+    senha_app = os.getenv("SENHA_APP_EMAIL")
     
     if not remetente or not senha_app:
         print("[ERRO DE SISTEMA] Variáveis de ambiente para envio de e-mail não configuradas.")
