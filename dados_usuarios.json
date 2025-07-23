@@ -1,51 +1,17 @@
 {
-    "nicolas": {
-        "nome_usuario": "Nicolas",
-        "senha": "n12345678",
-        "email": "n@gmail.com",
-        "salario": 4412.0,
-        "gastos_fixos": 1412.0,
-        "gastos_alimentacao": 622.0,
-        "gastos_transporte": 800.0,
-        "gastos_lazer": 200.0,
+    "racismo": {
+        "nome_usuario": "racismo",
+        "senha": "kkk12345",
+        "email": "nicacionetoswim@gmail.com",
+        "salario": 66666.0,
+        "gastos_fixos": 6666.0,
+        "gastos_alimentacao": 6666.0,
+        "gastos_transporte": 6666.0,
+        "gastos_lazer": 6666.0,
         "preferencias_gastos": {
             "alimentacao": 2,
-            "transporte": 4,
-            "lazer": 5
-        },
-        "verificado": true,
-        "meta": {
-            "nome": "Primeira Meta",
-            "valor_total": 3000.0,
-            "prazo_dias": 70,
-            "progresso_atual": 250.0,
-            "data_inicio": "2025-07-19T21:44:05.726712",
-            "historico": [
-                {
-                    "data": "19/07/2025",
-                    "valor": 50.0
-                },
-                {
-                    "data": "19/07/2025",
-                    "valor": 200.0
-                }
-            ],
-            "marcos_atingidos": []
-        }
-    },
-    "wasdwasd": {
-        "nome_usuario": "wasdwasd",
-        "senha": "wasdwasd1",
-        "email": "nikmonteiro27@gmail.com",
-        "salario": 4000.0,
-        "gastos_fixos": 100.0,
-        "gastos_alimentacao": 100.0,
-        "gastos_transporte": 100.0,
-        "gastos_lazer": 100.0,
-        "preferencias_gastos": {
-            "alimentacao": 5,
-            "transporte": 3,
-            "lazer": 4
+            "transporte": 5,
+            "lazer": 3
         },
         "verificado": true,
         "meta": {

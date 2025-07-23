@@ -583,7 +583,7 @@ class Interface_Inicial:
             self.texto_feedback_geral.color = ft.Colors.RED
             self.texto_feedback_geral.visible = True
         else:
-            self.popup.show("Cadastro realizado com sucesso! Redirecionando...")
+            self.popup_celebratorio.show("Cadastro realizado com sucesso! Redirecionando...")
             
         self.page.update()
         if sucesso_prefs:
