@@ -76,5 +76,19 @@ Com tudo configurado, execute o arquivo `main.py` para ver a simulação da lóg
 ```bash
 python interface.py
 ```
-## Fluxogramas do projeto
+## 6. Fluxogramas do projeto
 - Clicando nesse link você vai ser redirecionado para um drive com os principais fluxos do MetaCash (https://drive.google.com/drive/folders/1cc7KhsOQPP752RGZlG_YJhrb04sT5AXg)
+
+## 7. Bibliotecas utilizadas
+- Flet
+- Python-Dotenv 
+- datetime
+- json
+- os
+- time
+- random
+- smtplib
+- email.message
+
+
+
